@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package yandexEda;
+
+option go_package = "./";
+
+import "google/protobuf/empty.proto";
+
+service YandexEda {
+  rpc GetRestaurants (google.protobuf.Empty) returns  (GetRestaurantsResponse) {}
+  rpc GetRestaurant (GetRestaurantRequest) returns (GetRestaurantResponse) {}
+  rpc ParseRestaurants (ParseRestaurantsRequest) returns (ParseRestaurantsResponse) {}
+}
+
+message GetRestaurantsResponse {
+  repeated Restaurant restaurants = 1;
+  message Restaurant {
+    int64 id = 1;
+    string name = 2;
+    string slug = 3;
+    double deliveryPrice = 4;
+    double rating = 5;
+  }
+}
+
+message GetRestaurantResponse {
+  repeated Position positions = 1;
+  message Position {
+      string name = 1;
+      string description = 2;
+      int64 price = 3;
+      int64 weight = 4;
+  }
+}
+
+message GetRestaurantRequest {
+  int64 id = 1;
+}
+
+message ParseRestaurantsRequest {
+  optional double latitude = 1;
+  optional double longitude = 2;
+  optional int32 workers = 3;
+}
+
+message ParseRestaurantsResponse {
+  int32 wereProcessed = 1;
+}
+

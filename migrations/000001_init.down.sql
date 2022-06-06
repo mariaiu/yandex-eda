@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS position;
+
+DROP TABLE IF EXISTS restaurant;
+

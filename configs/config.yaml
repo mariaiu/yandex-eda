@@ -1,0 +1,13 @@
+app:
+  endpoint: https://eda.yandex.ru/api/v2/catalog
+  minRating: 4.5
+  maxWorkers: 30
+  latitude: 59.962782
+  longitude: 30.287957
+
+db:
+  host: "postgres"
+  port: "5432"
+  username: "postgres"
+  dbname: "postgres"
+  sslmode: "disable"
