@@ -1,71 +1,89 @@
-<h2> Задача </h2>
+# Yandex.Eda Parsing Service
 
-Написать сервис парсинга Яндекс.Еды конфигурируемый из .yaml файла содержащего:
+The Yandex.Eda Parsing Service is a versatile tool designed to parse restaurant data from Yandex.Food, allowing users to configure its behavior through a simple .yaml configuration file. The service offers powerful features for extracting restaurant information, managing ratings, and handling menu items.
 
- - минимальный рейтинг ресторанов
+## Table of Contents
 
- - координаты
+- [Introduction](#yandexeda-parsing-service)
+- [Features](#features)
+- [Configuration](#configuration)
+- [Usage](#usage)
+  - [HTTP Requests](#http-requests)
+  - [gRPC Calls](#grpc-calls)
+- [Deployment](#deployment)
 
- - api endpoint
+## Features
 
-При невалидном конфигурационном файле сервис должен не запускаться и возвращать текст ошибки.
+- **Configurability**: The service's behavior can be tailored using a .yaml configuration file. Users can specify:
+  - Minimum restaurant ratings
+  - Coordinates
+  - API endpoint
 
-В сервисе должна быть предусмотрены возможности:
+- **Error Handling**: Invalid configuration files prevent the service from launching, ensuring proper functionality and user-friendly error messages.
 
- - изменить минимальный рейтинг на старте приложения в конфигурационном файле с помощью флагов
+- **Dynamic Rating Adjustment**: The minimum restaurant rating can be modified during application startup via configuration file flags.
 
- - указать с помощью флагов координаты с более высоким приоритетом, чем в конфигурационном файле
+- **Priority Coordinates**: High-priority coordinates can be specified using flags, overriding those in the configuration file.
 
-Сервис должен по запросу GET /restaurant вернуть все рестораны из БД отсортированные по рейтингу (от большего к меньшему) и соотношению цены с учетом доставки к весу (от меньшего к большему)
+- **Data Retrieval**: Upon a GET request to `/restaurant`, the service returns all restaurants from the database sorted by rating and price-to-weight ratio.
 
-Сервис должен по запросу GET /restaurant/:id вернуть цены всех роллов филадельфия с лососем в ресторане из БД
+- **Detailed Menu Information**: A GET request to `/restaurant/:id` provides comprehensive pricing details for Philadelphia rolls with salmon at the selected restaurant.
 
-Сервис должен по запросу GET /parse с базовой авторизацией выполнить:
+- **Parallel Parsing**: With a GET request to `/parse` and basic authorization, the service performs multi-threaded parsing of restaurants meeting or exceeding the specified rating.
 
-1. многопоточный парсинг всех ресторанов с рейтингом не ниже чем в конфиге
-2. сохранить в БД рестораны в меню которых есть ролл Филадельфия с лососем и вернуть код 200
+- **Database Interaction**: Parsed restaurants with relevant menu items are stored in the database for future reference.
 
-Количество потоков указывается в заголовке или параметре запроса, при значении превышающем максимальное из конфигурационного файла - возвращается ответ с кодом 422
+- **Concurrency Control**: Prevents simultaneous parsing operations and enforces a timeout if parsing locks are not released within 30 seconds.
 
-Сервис не должен позволять выполнить несколько парсингов одновременно и возвращать таймаут, если за 30 секунд не получилось снять блокировку парсинга.
+- **Optional Coordinates**: Coordinates in requests are optional. If absent, the service utilizes coordinates provided in application launch flags.
 
-Координаты в запросе необязательны, если их нет, то используются координаты указанные в флагах при запуске приложениях.
-Парсинг логгируется в stdout с помощью логгера github.com/sirupsen/logrus v1.6.0
+- **Logging**: Parsing activities are logged to the standard output using the `github.com/sirupsen/logrus v1.6.0` logger.
 
+## Configuration
 
-<h2> Развертывание </h2>
+The service's behavior can be configured through the `.yaml` file. Configure the following parameters:
 
-Запуск миграций:
-```
-make migrate
-```
-Генерация proto-файлов:
-```
-make proto-gen
-```
-Запуск приложения:
-```
-make docker-up
-```
-<h2> Примеры запросов </h2>
+- Minimum restaurant ratings
+- Coordinates
+- API endpoint
 
-* HTTP
+## Usage
 
-```
+### HTTP Requests
+
+Make HTTP requests to interact with the service. Examples include:
+
+```bash
+# Parse restaurants with specified workers and coordinates
 curl -u alice:alice 'localhost:8080/parse?workers=25&latitude=59.836685&longitude=30.358017'
 
+# Retrieve detailed menu information for a specific restaurant
 curl localhost:8080/restaurant/1 | jq
 
+# Retrieve a list of restaurants sorted by rating and price-to-weight ratio
 curl localhost:8080/restaurant | jq
-```
-* gRPC
 
 ```
+### gRPC Calls
+For gRPC calls, use the following commands:
+
+```bash
+# Start a gRPC session
 evans proto/restaurant.proto -p 8081
 
-
+# Call the ParseRestaurants method
 call ParseRestaurants
+
+# Call the GetRestaurant method
 call GetRestaurant
+
+# Call the GetRestaurants method
 call GetRestaurants
+
 ```
 
+## Deployment
+
+- Run migrations: make migrate
+- Generate proto files: make proto-gen
+- Start the application: make docker-up
